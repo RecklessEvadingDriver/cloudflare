@@ -26,8 +26,9 @@ const CLIENT_INFO = JSON.stringify({
   sp_code: ""
 });
 
-const SECRET_KEY_DEFAULT = Buffer.from("NzZpUmwwN3MweFNOOWpxbUVXQXQ3OUVCSlp1bElRSXNWNjRGWnIyTw==", 'base64').toString('utf-8');
-const SECRET_KEY_ALT = Buffer.from("WHFuMm5uTzQxL0w5Mm8xaXVYaFNMSFRiWHZZNFo1Wlo2Mm04bVNMQQ==", 'base64').toString('utf-8');
+// Keep the base64-encoded strings to match Python's double-decode behavior
+const SECRET_KEY_DEFAULT = "NzZpUmwwN3MweFNOOWpxbUVXQXQ3OUVCSlp1bElRSXNWNjRGWnIyTw==";
+const SECRET_KEY_ALT = "WHFuMm5uTzQxL0w5Mm8xaXVYaFNMSFRiWHZZNFo1Wlo2Mm04bVNMQQ==";
 
 const MAIN_PAGE = {
   "4516404531735022304": "Trending",
@@ -148,10 +149,18 @@ class MovieBoxClient {
     const timestamp = hardcodedTimestamp || Date.now();
     const canonical = this.buildCanonicalString(method, accept, contentType, url, body, timestamp);
     const secret = useAltKey ? SECRET_KEY_ALT : SECRET_KEY_DEFAULT;
-    // SECRET_KEY_DEFAULT and SECRET_KEY_ALT are already decoded from base64 to UTF-8
-    const secretBytes = Buffer.from(secret, 'utf-8');
-    const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
-    return `${timestamp}|2|${mac}`;
+    // Python does double base64 decode: first to UTF-8 string, then decode that string again.
+    // The first decode converts base64 to a string that is itself base64-encoded.
+    // This matches Python's implementation which has SECRET_KEY as base64.b64decode().decode('utf-8'),
+    // then does another base64.b64decode() on that string when generating the signature.
+    try {
+      const firstDecode = Buffer.from(secret, 'base64').toString('utf-8');
+      const secretBytes = Buffer.from(firstDecode, 'base64');
+      const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
+      return `${timestamp}|2|${mac}`;
+    } catch (error) {
+      throw new Error(`Failed to generate signature: ${error.message}`);
+    }
   }
 
   baseHeaders(xClientToken, xTrSignature) {
@@ -180,6 +189,8 @@ class MovieBoxClient {
     const mainParts = data.split(';')[0].split('|');
     const pg = mainParts[0] && /^\d+$/.test(mainParts[0]) ? parseInt(mainParts[0]) : 1;
     const channelId = mainParts.length > 1 ? mainParts[1] : null;
+    // Convert null to "None" to match Python's string formatting behavior
+    const channelIdStr = channelId === null ? "None" : channelId;
 
     const options = {};
     if (data.includes(';')) {
@@ -192,22 +203,33 @@ class MovieBoxClient {
       }
     }
 
-    const classify = options.classify || "All";
-    const country = options.country || "All";
-    const year = options.year || "All";
-    const genre = options.genre || "All";
-    const sort = options.sort || "ForYou";
+    // Validate option values to prevent JSON injection.
+    // Allows alphanumeric, spaces (needed for "Hindi dub", "United States"), and hyphens.
+    const validateOptionValue = (value) => {
+      if (!/^[a-zA-Z0-9\s\-]+$/.test(value)) {
+        throw new Error(`Invalid option value: ${value}`);
+      }
+      return value;
+    };
 
-    const jsonBody = JSON.stringify({
-      page: pg,
-      perPage: perPage,
-      channelId: channelId,
-      classify: classify,
-      country: country,
-      year: year,
-      genre: genre,
-      sort: sort
-    });
+    const classify = options.classify ? validateOptionValue(options.classify) : "All";
+    const country = options.country ? validateOptionValue(options.country) : "All";
+    const year = options.year ? validateOptionValue(options.year) : "All";
+    const genre = options.genre ? validateOptionValue(options.genre) : "All";
+    const sort = options.sort ? validateOptionValue(options.sort) : "ForYou";
+
+    // Build JSON body manually like Python to match exact format for signature generation.
+    // We cannot use JSON.stringify() because it would escape characters differently than Python's
+    // f-string formatting, resulting in different HMAC signatures. Input validation above ensures
+    // values are safe (alphanumeric, spaces, hyphens only).
+    // Note: channelId is always a string in Python, even for numeric values like "1" or "123".
+    const jsonBody = (
+      "{" +
+      `"page":${pg},"perPage":${perPage},"channelId":"${channelIdStr}",` +
+      `"classify":"${classify}","country":"${country}",` +
+      `"year":"${year}","genre":"${genre}","sort":"${sort}"` +
+      "}"
+    );
 
     const xClientToken = this.generateXClientToken();
     let response;
