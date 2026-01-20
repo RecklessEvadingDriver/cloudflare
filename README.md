@@ -99,7 +99,7 @@ The worker is pre-configured and ready to deploy:
 name = "moviebox-api-worker"
 main = "moviebox-worker.js"
 compatibility_date = "2025-01-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 ```
 
 ## Problem Statement
