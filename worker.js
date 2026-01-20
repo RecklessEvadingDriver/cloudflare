@@ -307,6 +307,7 @@ function getUsageHTML() {
           .then(() => alert('URL copied to clipboard!'))
           .catch(err => {
             // Fallback to older method if Clipboard API fails
+            // Note: execCommand is deprecated but provides compatibility for older browsers
             input.select();
             try {
               document.execCommand('copy');
@@ -317,6 +318,7 @@ function getUsageHTML() {
           });
       } else {
         // Fallback for older browsers
+        // Note: execCommand is deprecated but provides compatibility
         input.select();
         try {
           document.execCommand('copy');
