@@ -83,10 +83,14 @@ const QUALITIES = [
 ];
 
 /**
- * Helper function to match Python's json.dumps() formatting.
+ * Helper function to match Python's json.dumps() formatting for simple objects.
  * Python uses ": " (colon + space) and ", " (comma + space) as separators by default.
  * JavaScript's JSON.stringify uses no spaces.
  * This difference causes different MD5 hashes, different signatures, and 403 errors.
+ * 
+ * Note: This function only handles object key-value pairs correctly. Arrays with
+ * primitive values (like [1,2,3]) will not have spaces added between elements.
+ * This is acceptable because the MovieBox API requests don't use arrays.
  */
 function toPythonJson(obj) {
   const json = JSON.stringify(obj);
