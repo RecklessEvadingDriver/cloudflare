@@ -306,26 +306,14 @@ function getUsageHTML() {
         navigator.clipboard.writeText(input.value)
           .then(() => alert('URL copied to clipboard!'))
           .catch(err => {
-            // Fallback to older method if Clipboard API fails
-            // Note: execCommand is deprecated but provides compatibility for older browsers
+            // Fallback: show manual copy instruction
             input.select();
-            try {
-              document.execCommand('copy');
-              alert('URL copied to clipboard!');
-            } catch (e) {
-              alert('Failed to copy URL. Please copy manually.');
-            }
+            alert('Please press Ctrl+C (or Cmd+C on Mac) to copy the selected URL.');
           });
       } else {
-        // Fallback for older browsers
-        // Note: execCommand is deprecated but provides compatibility
+        // For older browsers, show manual copy instruction
         input.select();
-        try {
-          document.execCommand('copy');
-          alert('URL copied to clipboard!');
-        } catch (e) {
-          alert('Failed to copy URL. Please copy manually.');
-        }
+        alert('Please press Ctrl+C (or Cmd+C on Mac) to copy the selected URL.');
       }
     }
   </script>

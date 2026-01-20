@@ -45,7 +45,30 @@ const MAIN_PAGE = {
   "5177200225164885656": "Turkish Drama",
   "1|1": "Movies",
   "1|2": "Series",
-  "1|1006": "Anime"
+  "1|1006": "Anime",
+  "1|1;country=India": "Indian (Movies)",
+  "1|2;country=India": "Indian (Series)",
+  "1|1;classify=Hindi dub;country=United States": "USA (Movies)",
+  "1|2;classify=Hindi dub;country=United States": "USA (Series)",
+  "1|1;country=Japan": "Japan (Movies)",
+  "1|2;country=Japan": "Japan (Series)",
+  "1|1;country=China": "China (Movies)",
+  "1|2;country=China": "China (Series)",
+  "1|1;country=Philippines": "Philippines (Movies)",
+  "1|2;country=Philippines": "Philippines (Series)",
+  "1|1;country=Thailand": "Thailand(Movies)",
+  "1|2;country=Thailand": "Thailand(Series)",
+  "1|1;country=Nigeria": "Nollywood (Movies)",
+  "1|2;country=Nigeria": "Nollywood (Series)",
+  "1|1;country=Korea": "South Korean (Movies)",
+  "1|2;country=Korea": "South Korean (Series)",
+  "1|1;classify=Hindi dub;genre=Action": "Action (Movies)",
+  "1|1;classify=Hindi dub;genre=Crime": "Crime (Movies)",
+  "1|1;classify=Hindi dub;genre=Comedy": "Comedy (Movies)",
+  "1|1;classify=Hindi dub;genre=Romance": "Romance (Movies)",
+  "1|2;classify=Hindi dub;genre=Crime": "Crime (Series)",
+  "1|2;classify=Hindi dub;genre=Comedy": "Comedy (Series)",
+  "1|2;classify=Hindi dub;genre=Romance": "Romance (Series)"
 };
 
 const QUALITIES = [
@@ -125,7 +148,8 @@ class MovieBoxClient {
     const timestamp = hardcodedTimestamp || Date.now();
     const canonical = this.buildCanonicalString(method, accept, contentType, url, body, timestamp);
     const secret = useAltKey ? SECRET_KEY_ALT : SECRET_KEY_DEFAULT;
-    const secretBytes = Buffer.from(secret, 'base64');
+    // SECRET_KEY_DEFAULT and SECRET_KEY_ALT are already decoded from base64 to UTF-8
+    const secretBytes = Buffer.from(secret, 'utf-8');
     const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
     return `${timestamp}|2|${mac}`;
   }
