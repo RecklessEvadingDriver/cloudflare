@@ -3,9 +3,11 @@
  * This worker accepts encoded URLs and proxies requests with the required headers/cookies
  */
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request))
-})
+export default {
+  async fetch(request, env, ctx) {
+    return handleRequest(request)
+  }
+}
 
 /**
  * Main request handler
@@ -298,9 +300,31 @@ function getUsageHTML() {
     
     function copyToClipboard() {
       const input = document.getElementById('proxyUrl');
-      input.select();
-      document.execCommand('copy');
-      alert('URL copied to clipboard!');
+      
+      // Use modern Clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value)
+          .then(() => alert('URL copied to clipboard!'))
+          .catch(err => {
+            // Fallback to older method if Clipboard API fails
+            input.select();
+            try {
+              document.execCommand('copy');
+              alert('URL copied to clipboard!');
+            } catch (e) {
+              alert('Failed to copy URL. Please copy manually.');
+            }
+          });
+      } else {
+        // Fallback for older browsers
+        input.select();
+        try {
+          document.execCommand('copy');
+          alert('URL copied to clipboard!');
+        } catch (e) {
+          alert('Failed to copy URL. Please copy manually.');
+        }
+      }
     }
   </script>
 </body>

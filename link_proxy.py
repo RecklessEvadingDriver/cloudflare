@@ -162,7 +162,7 @@ if __name__ == "__main__":
             "type": "dash",
             "headers": {
                 "Referer": "https://api.inmoviebox.com",
-                "Cookie": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9zYWNkbi5oYWt1bmF5bWF0YXRhLmNvbS9kYXNoLzUwODM3NzIwMTU3ODY1MDgyNDBfMF8wXzEwODBfaDI2NV8xMzYvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc2OTQ5NTgxNH19fV19;CloudFront-Signature=qeavJeZDFB-KRRYW6slWwHll49z65HUKFluoCcW8S4TalKQHJ8FX2jVmXxgl3ae7r-D9VOvfh5qmEJPDIGJvvPV-sHhelHBZGbhgkIatsSHMgVmBbDe-V62g9YM6HBA-5KVtFk80vmnTHlkU0WcIAeg1ZE76qHdMWM1iqM9ZEVbIBCLCM8FZ12l4jFUdWecdtwMJPA9LgDrnR0QZJ84BMXQRxqI3-eC-R4PF3U1s7LAWsMDANsqiuJ4RrJdRejskjAhKjbHz9g__;CloudFront-Key-Pair-Id=KMHN1LQ1HEUPL"
+                "Cookie": "CloudFront-Policy=eyJTdGF0ZW...PLACEHOLDER...;CloudFront-Signature=qeavJeZ...PLACEHOLDER...;CloudFront-Key-Pair-Id=KMHN1LQ1HEUPL"
             }
         }
         
