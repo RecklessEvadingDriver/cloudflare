@@ -5,8 +5,13 @@
   "main": "worker.js",
   "scripts": {
     "deploy": "wrangler deploy",
+    "deploy:proxy": "wrangler deploy -c wrangler.toml",
+    "deploy:moviebox": "wrangler deploy -c wrangler-moviebox.toml",
+    "deploy:all": "npm run deploy:proxy && npm run deploy:moviebox",
     "dev": "wrangler dev",
-    "tail": "wrangler tail"
+    "dev:moviebox": "wrangler dev -c wrangler-moviebox.toml",
+    "tail": "wrangler tail",
+    "tail:moviebox": "wrangler tail -c wrangler-moviebox.toml"
   },
   "keywords": [
     "cloudflare",
@@ -16,7 +21,9 @@
     "media",
     "streaming",
     "dash",
-    "hls"
+    "hls",
+    "moviebox",
+    "api"
   ],
   "author": "",
   "license": "MIT",

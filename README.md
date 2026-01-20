@@ -1,8 +1,179 @@
 # CloudFront Link Proxy Service
 
-A Cloudflare Worker service that converts protected media links (with CloudFront cookies and headers) into simple temporary links that can be played directly in video players.
+A comprehensive Cloudflare Workers solution for handling protected media links and accessing MovieBox content.
 
-## Features
+## 📦 What's Included
+
+This repository contains **two Cloudflare Workers**:
+
+### 1. **Link Proxy Worker** (`worker.js`)
+A standalone proxy service that converts protected media links (with CloudFront cookies and headers) into simple temporary links that work in any video player.
+
+**Use Case**: You have protected URLs with headers/cookies and want to create playable links.
+
+[📖 Full Documentation](README.md)
+
+### 2. **MovieBox API Worker** (`moviebox-worker.js`) ⭐ NEW
+A complete MovieBox API implementation that **automatically** converts all streaming links to proxy URLs in API responses.
+
+**Use Case**: Access MovieBox content via REST API with playable URLs out of the box.
+
+[📖 Full Documentation](MOVIEBOX-API.md)
+
+## 🚀 Quick Start
+
+### Option A: Deploy Both Workers
+
+```bash
+# Install Wrangler
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Deploy both workers
+npm run deploy:all
+```
+
+### Option B: Deploy Individual Workers
+
+```bash
+# Deploy only the proxy worker
+wrangler deploy -c wrangler.toml
+
+# OR deploy only the MovieBox API worker
+wrangler deploy -c wrangler-moviebox.toml
+```
+
+## 🎯 Which One Should I Use?
+
+### Use **Link Proxy Worker** if you:
+- Have protected URLs from any source
+- Want a simple proxy service
+- Need to manually generate temporary links
+- Want a lightweight solution
+
+### Use **MovieBox API Worker** if you:
+- Want to access MovieBox content
+- Need a REST API
+- Want automatic link conversion
+- Need search, browse, and streaming in one place
+
+### Use **Both** if you:
+- Want the full solution
+- Need the proxy for other services AND MovieBox API
+- Want maximum flexibility
+
+## 📊 Comparison
+
+| Feature | Link Proxy Worker | MovieBox API Worker |
+|---------|------------------|---------------------|
+| Proxy protected links | ✅ | ✅ |
+| Generate temporary URLs | ✅ | ✅ Automatic |
+| MovieBox search | ❌ | ✅ |
+| MovieBox browse | ❌ | ✅ |
+| MovieBox streaming | ❌ | ✅ Auto-converted |
+| Generic (any source) | ✅ | ❌ MovieBox only |
+| Web interface | ✅ | ✅ |
+| REST API | ⚠️ Generate only | ✅ Full API |
+
+## 🔗 Example Workflows
+
+### Workflow 1: Using MovieBox API Worker (Recommended)
+
+### Workflow 1: Using MovieBox API Worker (Recommended)
+
+```bash
+# 1. Search for content
+curl "https://moviebox-api.workers.dev/api/search?query=Inception"
+
+# 2. Get streaming links (already proxied!)
+curl "https://moviebox-api.workers.dev/api/links?data=5083772015786508240|0|0"
+
+# 3. Play directly
+vlc "https://moviebox-api.workers.dev/proxy/eyJ1cmwiOi4uLg=="
+```
+
+**Result**: Protected URLs are automatically converted to playable proxy URLs! 🎉
+
+### Workflow 2: Using Link Proxy Worker (Manual)
+
+```bash
+# 1. Get protected URL from somewhere
+PROTECTED_URL="https://sacdn.hakunaymatata.com/dash/.../index.mpd"
+
+# 2. Generate proxy link
+curl -X POST https://proxy.workers.dev/generate \
+  -H "Content-Type: application/json" \
+  -d '{"url":"'$PROTECTED_URL'","headers":{"Cookie":"..."}}'
+
+# 3. Play the proxy URL
+vlc "https://proxy.workers.dev/proxy/eyJ1cmwiOi4uLg=="
+```
+
+## 🎬 Real-World Example
+
+### MovieBox API Worker in Action
+
+```javascript
+// Search for a movie
+const search = await fetch('https://moviebox-api.workers.dev/api/search?query=Inception');
+const movies = await search.json();
+// [{ title: "Inception", subjectId: "5083772015786508240", ... }]
+
+// Get streaming links
+const links = await fetch('https://moviebox-api.workers.dev/api/links?data=5083772015786508240|0|0');
+const data = await links.json();
+
+// Streams are already proxied!
+console.log(data.streams[0]);
+// {
+//   "url": "https://moviebox-api.workers.dev/proxy/eyJ1cmwiOi4uLg==",
+//   "type": "dash",
+//   "headers": {},  // No headers needed!
+//   "proxied": true,
+//   "originalUrl": "https://sacdn.hakunaymatata.com/dash/.../index.mpd"
+// }
+```
+
+## 📁 Repository Structure
+
+```
+.
+├── worker.js                    # Link Proxy Worker
+├── wrangler.toml               # Config for Link Proxy Worker
+├── moviebox-worker.js          # MovieBox API Worker ⭐
+├── wrangler-moviebox.toml      # Config for MovieBox API Worker
+├── moviebox_cli.py             # Original Python implementation
+├── link_proxy.py               # Python helper library
+├── examples.py                 # Python usage examples
+├── test_proxy.py               # Unit tests
+├── package.json                # NPM scripts
+├── README.md                   # This file
+├── MOVIEBOX-API.md            # MovieBox API documentation
+└── .gitignore
+```
+
+## 🔧 Configuration
+
+Both workers are pre-configured and ready to deploy. However, you can customize:
+
+### Link Proxy Worker (`wrangler.toml`)
+```toml
+name = "cloudfront-link-proxy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+```
+
+### MovieBox API Worker (`wrangler-moviebox.toml`)
+```toml
+name = "moviebox-api-worker"
+main = "moviebox-worker.js"
+compatibility_date = "2025-01-01"
+node_compat = true
+```
+
+## 🌟 Key Features
 
 - 🔐 **Proxy Protected Links**: Handle media URLs that require CloudFront signed cookies
 - 🎬 **Direct Playback**: Generated links work directly in video players (VLC, MPV, web players)
