@@ -202,7 +202,10 @@ class MovieBoxClient {
     const genre = options.genre || "All";
     const sort = options.sort || "ForYou";
 
-    // Build JSON body manually like Python to match exact format
+    // Build JSON body manually like Python to match exact format for signature generation
+    // Note: This does not escape special characters in string values, matching Python's behavior.
+    // In practice, values come from controlled sources (predefined constants or URL parameters).
+    // channelId is always a string in Python, even for numeric values like "1" or "123".
     const jsonBody = (
       "{" +
       `"page":${pg},"perPage":${perPage},"channelId":"${channelIdStr}",` +
