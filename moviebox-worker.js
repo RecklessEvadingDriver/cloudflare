@@ -354,7 +354,9 @@ class MovieBoxClient {
       }
     }
 
-    const tags = (genre || "").split(',').map(t => t.trim()).filter(t => t);
+    // Safely handle genre which might be undefined, null, or non-string
+    const genreString = genre && typeof genre === 'string' ? genre : "";
+    const tags = genreString.split(',').map(t => t.trim()).filter(t => t);
     const durationMinutes = this.parseDuration(duration);
     const typeName = subjectType === 2 ? 'tv' : 'movie';
 

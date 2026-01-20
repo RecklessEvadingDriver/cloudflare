@@ -1,6 +1,7 @@
-name = "cloudfront-link-proxy"
-main = "worker.js"
+name = "moviebox-api-worker"
+main = "moviebox-worker.js"
 compatibility_date = "2025-01-01"
+node_compat = true
 
 # Workers configuration
 workers_dev = true
