@@ -149,11 +149,18 @@ class MovieBoxClient {
     const timestamp = hardcodedTimestamp || Date.now();
     const canonical = this.buildCanonicalString(method, accept, contentType, url, body, timestamp);
     const secret = useAltKey ? SECRET_KEY_ALT : SECRET_KEY_DEFAULT;
-    // Python does double base64 decode: first to UTF-8 string, then decode that string again
-    const firstDecode = Buffer.from(secret, 'base64').toString('utf-8');
-    const secretBytes = Buffer.from(firstDecode, 'base64');
-    const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
-    return `${timestamp}|2|${mac}`;
+    // Python does double base64 decode: first to UTF-8 string, then decode that string again.
+    // The first decode converts base64 to a string that is itself base64-encoded.
+    // This matches Python's implementation which has SECRET_KEY as base64.b64decode().decode('utf-8'),
+    // then does another base64.b64decode() on that string when generating the signature.
+    try {
+      const firstDecode = Buffer.from(secret, 'base64').toString('utf-8');
+      const secretBytes = Buffer.from(firstDecode, 'base64');
+      const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
+      return `${timestamp}|2|${mac}`;
+    } catch (error) {
+      throw new Error(`Failed to generate signature: ${error.message}`);
+    }
   }
 
   baseHeaders(xClientToken, xTrSignature) {
@@ -196,15 +203,22 @@ class MovieBoxClient {
       }
     }
 
-    const classify = options.classify || "All";
-    const country = options.country || "All";
-    const year = options.year || "All";
-    const genre = options.genre || "All";
-    const sort = options.sort || "ForYou";
+    // Validate option values to prevent JSON injection (only alphanumeric, spaces, and hyphens allowed)
+    const validateOptionValue = (value) => {
+      if (!/^[a-zA-Z0-9\s\-]+$/.test(value)) {
+        throw new Error(`Invalid option value: ${value}`);
+      }
+      return value;
+    };
 
-    // Build JSON body manually like Python to match exact format for signature generation
-    // Note: This does not escape special characters in string values, matching Python's behavior.
-    // In practice, values come from controlled sources (predefined constants or URL parameters).
+    const classify = options.classify ? validateOptionValue(options.classify) : "All";
+    const country = options.country ? validateOptionValue(options.country) : "All";
+    const year = options.year ? validateOptionValue(options.year) : "All";
+    const genre = options.genre ? validateOptionValue(options.genre) : "All";
+    const sort = options.sort ? validateOptionValue(options.sort) : "ForYou";
+
+    // Build JSON body manually like Python to match exact format for signature generation.
+    // Input validation above ensures values are safe (alphanumeric, spaces, hyphens only).
     // channelId is always a string in Python, even for numeric values like "1" or "123".
     const jsonBody = (
       "{" +
