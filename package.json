@@ -1,0 +1,26 @@
+{
+  "name": "cloudfront-link-proxy",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker to proxy protected media links with CloudFront cookies",
+  "main": "worker.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "proxy",
+    "cloudfront",
+    "media",
+    "streaming",
+    "dash",
+    "hls"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
