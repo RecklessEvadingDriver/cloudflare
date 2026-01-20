@@ -83,6 +83,23 @@ const QUALITIES = [
 ];
 
 /**
+ * Helper function to match Python's json.dumps() formatting for simple objects.
+ * Python uses ": " (colon + space) and ", " (comma + space) as separators by default.
+ * JavaScript's JSON.stringify uses no spaces.
+ * This difference causes different MD5 hashes, different signatures, and 403 errors.
+ * 
+ * Note: This function only handles object key-value pairs correctly. Arrays with
+ * primitive values (like [1,2,3]) will not have spaces added between elements.
+ * This is acceptable because the MovieBox API requests don't use arrays.
+ */
+function toPythonJson(obj) {
+  const json = JSON.stringify(obj);
+  // Python json.dumps() uses (', ', ': ') as separators
+  // Add space after colons following quotes (for string keys) and after commas before quotes
+  return json.replace(/":/g, '": ').replace(/,"/g, ', "');
+}
+
+/**
  * MovieBox API Client
  */
 class MovieBoxClient {
@@ -281,7 +298,7 @@ class MovieBoxClient {
 
   async search(query) {
     const url = `${MAIN_URL}/wefeed-mobile-bff/subject-api/search/v2`;
-    const jsonBody = JSON.stringify({ page: 1, perPage: 10, keyword: query });
+    const jsonBody = toPythonJson({ page: 1, perPage: 10, keyword: query });
     
     const xClientToken = this.generateXClientToken();
     const xTrSignature = this.generateXTrSignature('POST', 'application/json', 'application/json; charset=utf-8', url, jsonBody);
