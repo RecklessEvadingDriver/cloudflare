@@ -1,28 +1,17 @@
-# CloudFront Link Proxy Service
+# MovieBox API Worker
 
-A comprehensive Cloudflare Workers solution for handling protected media links and accessing MovieBox content.
+A comprehensive Cloudflare Workers solution for accessing MovieBox content with automatic proxy link generation for protected media.
 
 ## 📦 What's Included
 
-This repository contains **two Cloudflare Workers**:
+This repository contains a **unified Cloudflare Worker** (`moviebox-worker.js`) that provides:
 
-### 1. **Link Proxy Worker** (`worker.js`)
-A standalone proxy service that converts protected media links (with CloudFront cookies and headers) into simple temporary links that work in any video player.
-
-**Use Case**: You have protected URLs with headers/cookies and want to create playable links.
-
-[📖 Full Documentation](README.md)
-
-### 2. **MovieBox API Worker** (`moviebox-worker.js`) ⭐ NEW
-A complete MovieBox API implementation that **automatically** converts all streaming links to proxy URLs in API responses.
-
-**Use Case**: Access MovieBox content via REST API with playable URLs out of the box.
-
-[📖 Full Documentation](MOVIEBOX-API.md)
+1. ✅ **Complete MovieBox API** - Search, browse, and stream content via REST endpoints
+2. ✅ **Automatic Proxy URLs** - Protected links are automatically converted to playable proxy URLs
+3. ✅ **Built-in Proxy Service** - Handles CloudFront cookies and headers transparently
+4. ✅ **CORS Enabled** - Works directly from web browsers and video players
 
 ## 🚀 Quick Start
-
-### Option A: Deploy Both Workers
 
 ```bash
 # Install Wrangler
@@ -31,104 +20,53 @@ npm install -g wrangler
 # Login to Cloudflare
 wrangler login
 
-# Deploy both workers
-npm run deploy:all
+# Deploy the worker
+npm run deploy
 ```
 
-### Option B: Deploy Individual Workers
+You'll get a URL like: `https://moviebox-api-worker.your-account.workers.dev`
+## 🎯 Features
 
-```bash
-# Deploy only the proxy worker
-wrangler deploy -c wrangler.toml
+- 🔐 **Proxy Protected Links**: Handles media URLs that require CloudFront signed cookies
+- 🎬 **MovieBox API**: Complete REST API for search, browse, and streaming
+- 🔄 **Automatic Conversion**: Protected links are automatically converted to proxy URLs
+- 🎥 **Direct Playback**: Generated links work directly in video players (VLC, MPV, web players)
+- ⏰ **Temporary Links**: Links expire after 24 hours by default
+- 🌐 **CORS Support**: Full CORS headers for web player compatibility
+- 📡 **Range Requests**: Supports partial content for video seeking
+- 🚀 **Free & Serverless**: Runs on Cloudflare Workers (free tier available)
 
-# OR deploy only the MovieBox API worker
-wrangler deploy -c wrangler-moviebox.toml
-```
-
-## 🎯 Which One Should I Use?
-
-### Use **Link Proxy Worker** if you:
-- Have protected URLs from any source
-- Want a simple proxy service
-- Need to manually generate temporary links
-- Want a lightweight solution
-
-### Use **MovieBox API Worker** if you:
-- Want to access MovieBox content
-- Need a REST API
-- Want automatic link conversion
-- Need search, browse, and streaming in one place
-
-### Use **Both** if you:
-- Want the full solution
-- Need the proxy for other services AND MovieBox API
-- Want maximum flexibility
-
-## 📊 Comparison
-
-| Feature | Link Proxy Worker | MovieBox API Worker |
-|---------|------------------|---------------------|
-| Proxy protected links | ✅ | ✅ |
-| Generate temporary URLs | ✅ | ✅ Automatic |
-| MovieBox search | ❌ | ✅ |
-| MovieBox browse | ❌ | ✅ |
-| MovieBox streaming | ❌ | ✅ Auto-converted |
-| Generic (any source) | ✅ | ❌ MovieBox only |
-| Web interface | ✅ | ✅ |
-| REST API | ⚠️ Generate only | ✅ Full API |
-
-## 🔗 Example Workflows
-
-### Workflow 1: Using MovieBox API Worker (Recommended)
-
-### Workflow 1: Using MovieBox API Worker (Recommended)
+## 🔗 Example Workflow
 
 ```bash
 # 1. Search for content
-curl "https://moviebox-api.workers.dev/api/search?query=Inception"
+curl "https://your-worker.workers.dev/api/search?query=Inception"
 
 # 2. Get streaming links (already proxied!)
-curl "https://moviebox-api.workers.dev/api/links?data=5083772015786508240|0|0"
+curl "https://your-worker.workers.dev/api/links?data=5083772015786508240|0|0"
 
 # 3. Play directly
-vlc "https://moviebox-api.workers.dev/proxy/eyJ1cmwiOi4uLg=="
+vlc "https://your-worker.workers.dev/proxy/eyJ1cmwiOi4uLg=="
 ```
 
 **Result**: Protected URLs are automatically converted to playable proxy URLs! 🎉
 
-### Workflow 2: Using Link Proxy Worker (Manual)
-
-```bash
-# 1. Get protected URL from somewhere
-PROTECTED_URL="https://sacdn.hakunaymatata.com/dash/.../index.mpd"
-
-# 2. Generate proxy link
-curl -X POST https://proxy.workers.dev/generate \
-  -H "Content-Type: application/json" \
-  -d '{"url":"'$PROTECTED_URL'","headers":{"Cookie":"..."}}'
-
-# 3. Play the proxy URL
-vlc "https://proxy.workers.dev/proxy/eyJ1cmwiOi4uLg=="
-```
-
 ## 🎬 Real-World Example
-
-### MovieBox API Worker in Action
 
 ```javascript
 // Search for a movie
-const search = await fetch('https://moviebox-api.workers.dev/api/search?query=Inception');
+const search = await fetch('https://your-worker.workers.dev/api/search?query=Inception');
 const movies = await search.json();
 // [{ title: "Inception", subjectId: "5083772015786508240", ... }]
 
 // Get streaming links
-const links = await fetch('https://moviebox-api.workers.dev/api/links?data=5083772015786508240|0|0');
+const links = await fetch('https://your-worker.workers.dev/api/links?data=5083772015786508240|0|0');
 const data = await links.json();
 
 // Streams are already proxied!
 console.log(data.streams[0]);
 // {
-//   "url": "https://moviebox-api.workers.dev/proxy/eyJ1cmwiOi4uLg==",
+//   "url": "https://your-worker.workers.dev/proxy/eyJ1cmwiOi4uLg==",
 //   "type": "dash",
 //   "headers": {},  // No headers needed!
 //   "proxied": true,
@@ -140,11 +78,10 @@ console.log(data.streams[0]);
 
 ```
 .
-├── worker.js                    # Link Proxy Worker
-├── wrangler.toml               # Config for Link Proxy Worker
-├── moviebox-worker.js          # MovieBox API Worker ⭐
-├── wrangler-moviebox.toml      # Config for MovieBox API Worker
-├── moviebox_cli.py             # Original Python implementation
+├── moviebox-worker.js          # Main worker (API + Proxy)
+├── wrangler.toml               # Worker configuration
+├── test_moviebox_worker.js     # Integration tests
+├── moviebox_cli.py             # Original Python implementation (reference)
 ├── link_proxy.py               # Python helper library
 ├── examples.py                 # Python usage examples
 ├── test_proxy.py               # Unit tests
@@ -156,31 +93,14 @@ console.log(data.streams[0]);
 
 ## 🔧 Configuration
 
-Both workers are pre-configured and ready to deploy. However, you can customize:
+The worker is pre-configured and ready to deploy:
 
-### Link Proxy Worker (`wrangler.toml`)
-```toml
-name = "cloudfront-link-proxy"
-main = "worker.js"
-compatibility_date = "2025-01-01"
-```
-
-### MovieBox API Worker (`wrangler-moviebox.toml`)
 ```toml
 name = "moviebox-api-worker"
 main = "moviebox-worker.js"
 compatibility_date = "2025-01-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 ```
-
-## 🌟 Key Features
-
-- 🔐 **Proxy Protected Links**: Handle media URLs that require CloudFront signed cookies
-- 🎬 **Direct Playback**: Generated links work directly in video players (VLC, MPV, web players)
-- ⏰ **Temporary Links**: Set custom expiration times (default: 24 hours)
-- 🌐 **CORS Support**: Full CORS headers for web player compatibility
-- 📡 **Range Requests**: Supports partial content for video seeking
-- 🚀 **Free & Serverless**: Runs on Cloudflare Workers (free tier available)
 
 ## Problem Statement
 
@@ -233,89 +153,74 @@ wrangler login
 
 4. **Deploy the Worker**:
 ```bash
-wrangler deploy
+npm run deploy
 ```
 
-You'll get a URL like: `https://cloudfront-link-proxy.your-account.workers.dev`
+You'll get a URL like: `https://moviebox-api-worker.your-account.workers.dev`
+
+## API Endpoints
+
+For detailed API documentation, see [MOVIEBOX-API.md](MOVIEBOX-API.md) or visit your deployed worker URL in a browser.
+
+### Quick Reference
+
+```bash
+# List categories
+GET /api/list-categories
+
+# Browse category
+GET /api/main-page?category={id}&page={num}
+
+# Search
+GET /api/search?query={text}
+
+# Load details
+GET /api/load?subject={id}
+
+# Get streaming links (auto-converted to proxy URLs)
+GET /api/links?data={subjectId|season|episode}
+
+# Manual proxy generation
+POST /generate
+
+# Proxy endpoint
+GET /proxy/{encoded}
+```
 
 ## Usage
 
 ### Web Interface
 
-Visit your worker URL in a browser to access the interactive web interface:
+Visit your worker URL in a browser to access the interactive API documentation and web interface:
 
 ```
 https://your-worker.workers.dev/
 ```
 
-Fill in:
-- **Media URL**: The protected media link
-- **Headers**: JSON object with required headers (Referer, Cookie, etc.)
-- **TTL**: Link expiration time in seconds
+### API Example
 
-Click "Generate Link" to create your temporary proxy URL.
-
-### API Usage
-
-#### Generate Temporary Link
-
-**Endpoint**: `POST /generate`
-
-**Request**:
 ```bash
-curl -X POST https://your-worker.workers.dev/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://sacdn.hakunaymatata.com/dash/5083772015786508240_0_0_1080_h265_136/index.mpd",
-    "headers": {
-      "Referer": "https://api.inmoviebox.com",
-      "Cookie": "CloudFront-Policy=eyJTdGF0ZW...PLACEHOLDER...;CloudFront-Signature=qeavJeZ...PLACEHOLDER...;CloudFront-Key-Pair-Id=KMHN1LQ1HEUPL"
-    },
-    "ttl": 86400
-  }'
-```
+# 1. Search for content
+curl "https://your-worker.workers.dev/api/search?query=Inception"
 
-**Response**:
-```json
-{
-  "success": true,
-  "proxyUrl": "https://your-worker.workers.dev/proxy/eyJ1cmwiOiJodHRwczovL3NhY2RuLmhha3VuYXltYXRhdGEuY29tL2Rhc2gvNTA4Mzc3MjAxNTc4NjUwODI0MF8wXzBfMTA4MF9oMjY1XzEzNi9pbmRleC5tcGQiLCJoZWFkZXJzIjp7IlJlZmVyZXIiOiJodHRwczovL2FwaS5pbm1vdmllYm94LmNvbSIsIkNvb2tpZSI6IkNsb3VkRnJvbnQtUG9saWN5PS4uLiJ9LCJleHAiOjE3Mzc0NTMxODQwMDB9",
-  "expiresAt": "2026-01-21T08:06:24.000Z"
-}
-```
+# 2. Get streaming links (automatically converted to proxy URLs)
+curl "https://your-worker.workers.dev/api/links?data=5083772015786508240|0|0"
 
-#### Play the Link
-
-Use the `proxyUrl` in any video player:
-
-**VLC**:
-```bash
+# 3. Play directly in VLC
 vlc "https://your-worker.workers.dev/proxy/eyJ1cmwiOi..."
-```
-
-**MPV**:
-```bash
-mpv "https://your-worker.workers.dev/proxy/eyJ1cmwiOi..."
-```
-
-**Web Player** (HTML5):
-```html
-<video controls>
-  <source src="https://your-worker.workers.dev/proxy/eyJ1cmwiOi..." type="application/dash+xml">
-</video>
 ```
 
 ### Python Integration
 
-Use the provided Python helper module to integrate with MovieBox CLI:
+Use the provided Python helper module:
 
 ```python
-from link_proxy import LinkProxyClient, convert_moviebox_stream
+from link_proxy import LinkProxyClient
 
 # Initialize client
 client = LinkProxyClient("https://your-worker.workers.dev")
 
-# Generate link
+# Generate link manually
 result = client.generate_link(
     url="https://sacdn.hakunaymatata.com/dash/.../index.mpd",
     headers={
@@ -327,23 +232,25 @@ result = client.generate_link(
 
 print(f"Proxy URL: {result['proxyUrl']}")
 print(f"Expires: {result['expiresAt']}")
-
-# Or convert MovieBox stream directly
-stream = {
-    "url": "https://sacdn.hakunaymatata.com/dash/.../index.mpd",
-    "type": "dash",
-    "headers": {...}
-}
-
-converted = convert_moviebox_stream(stream, "https://your-worker.workers.dev")
-# Now converted['url'] is the proxy URL with no headers needed
 ```
 
-**Command Line**:
-```bash
-python link_proxy.py https://your-worker.workers.dev \
-  "https://sacdn.hakunaymatata.com/dash/.../index.mpd" \
-  '{"Referer":"https://api.inmoviebox.com","Cookie":"..."}'
+Or use the MovieBox API directly:
+
+```python
+import requests
+
+# Search for content
+response = requests.get("https://your-worker.workers.dev/api/search?query=Inception")
+results = response.json()
+print(f"Found: {results[0]['title']}")
+
+# Get streaming links (automatically converted to proxy URLs)
+links_response = requests.get(f"https://your-worker.workers.dev/api/links?data={results[0]['subjectId']}|0|0")
+data = links_response.json()
+
+# Proxy URLs are ready to use!
+proxy_url = data['streams'][0]['url']
+print(f"Play: {proxy_url}")
 ```
 
 ## How It Works
