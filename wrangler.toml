@@ -1,7 +1,7 @@
 name = "moviebox-api-worker"
 main = "moviebox-worker.js"
 compatibility_date = "2025-01-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 
 # Workers configuration
 workers_dev = true
