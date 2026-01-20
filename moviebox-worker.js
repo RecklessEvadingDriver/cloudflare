@@ -203,7 +203,8 @@ class MovieBoxClient {
       }
     }
 
-    // Validate option values to prevent JSON injection (only alphanumeric, spaces, and hyphens allowed)
+    // Validate option values to prevent JSON injection.
+    // Allows alphanumeric, spaces (needed for "Hindi dub", "United States"), and hyphens.
     const validateOptionValue = (value) => {
       if (!/^[a-zA-Z0-9\s\-]+$/.test(value)) {
         throw new Error(`Invalid option value: ${value}`);
@@ -218,8 +219,10 @@ class MovieBoxClient {
     const sort = options.sort ? validateOptionValue(options.sort) : "ForYou";
 
     // Build JSON body manually like Python to match exact format for signature generation.
-    // Input validation above ensures values are safe (alphanumeric, spaces, hyphens only).
-    // channelId is always a string in Python, even for numeric values like "1" or "123".
+    // We cannot use JSON.stringify() because it would escape characters differently than Python's
+    // f-string formatting, resulting in different HMAC signatures. Input validation above ensures
+    // values are safe (alphanumeric, spaces, hyphens only).
+    // Note: channelId is always a string in Python, even for numeric values like "1" or "123".
     const jsonBody = (
       "{" +
       `"page":${pg},"perPage":${perPage},"channelId":"${channelIdStr}",` +
