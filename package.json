@@ -1,0 +1,33 @@
+{
+  "name": "cloudfront-link-proxy",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker to proxy protected media links with CloudFront cookies",
+  "main": "worker.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "deploy:proxy": "wrangler deploy -c wrangler.toml",
+    "deploy:moviebox": "wrangler deploy -c wrangler-moviebox.toml",
+    "deploy:all": "npm run deploy:proxy && npm run deploy:moviebox",
+    "dev": "wrangler dev",
+    "dev:moviebox": "wrangler dev -c wrangler-moviebox.toml",
+    "tail": "wrangler tail",
+    "tail:moviebox": "wrangler tail -c wrangler-moviebox.toml"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "proxy",
+    "cloudfront",
+    "media",
+    "streaming",
+    "dash",
+    "hls",
+    "moviebox",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
