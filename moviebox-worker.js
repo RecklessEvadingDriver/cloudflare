@@ -26,8 +26,9 @@ const CLIENT_INFO = JSON.stringify({
   sp_code: ""
 });
 
-const SECRET_KEY_DEFAULT = Buffer.from("NzZpUmwwN3MweFNOOWpxbUVXQXQ3OUVCSlp1bElRSXNWNjRGWnIyTw==", 'base64').toString('utf-8');
-const SECRET_KEY_ALT = Buffer.from("WHFuMm5uTzQxL0w5Mm8xaXVYaFNMSFRiWHZZNFo1Wlo2Mm04bVNMQQ==", 'base64').toString('utf-8');
+// Keep the base64-encoded strings to match Python's double-decode behavior
+const SECRET_KEY_DEFAULT = "NzZpUmwwN3MweFNOOWpxbUVXQXQ3OUVCSlp1bElRSXNWNjRGWnIyTw==";
+const SECRET_KEY_ALT = "WHFuMm5uTzQxL0w5Mm8xaXVYaFNMSFRiWHZZNFo1Wlo2Mm04bVNMQQ==";
 
 const MAIN_PAGE = {
   "4516404531735022304": "Trending",
@@ -148,8 +149,9 @@ class MovieBoxClient {
     const timestamp = hardcodedTimestamp || Date.now();
     const canonical = this.buildCanonicalString(method, accept, contentType, url, body, timestamp);
     const secret = useAltKey ? SECRET_KEY_ALT : SECRET_KEY_DEFAULT;
-    // SECRET_KEY_DEFAULT and SECRET_KEY_ALT are already decoded from base64 to UTF-8
-    const secretBytes = Buffer.from(secret, 'utf-8');
+    // Python does double base64 decode: first to UTF-8 string, then decode that string again
+    const firstDecode = Buffer.from(secret, 'base64').toString('utf-8');
+    const secretBytes = Buffer.from(firstDecode, 'base64');
     const mac = crypto.createHmac('md5', secretBytes).update(canonical, 'utf-8').digest('base64');
     return `${timestamp}|2|${mac}`;
   }
@@ -180,6 +182,8 @@ class MovieBoxClient {
     const mainParts = data.split(';')[0].split('|');
     const pg = mainParts[0] && /^\d+$/.test(mainParts[0]) ? parseInt(mainParts[0]) : 1;
     const channelId = mainParts.length > 1 ? mainParts[1] : null;
+    // Convert null to "None" to match Python's string formatting behavior
+    const channelIdStr = channelId === null ? "None" : channelId;
 
     const options = {};
     if (data.includes(';')) {
@@ -198,16 +202,14 @@ class MovieBoxClient {
     const genre = options.genre || "All";
     const sort = options.sort || "ForYou";
 
-    const jsonBody = JSON.stringify({
-      page: pg,
-      perPage: perPage,
-      channelId: channelId,
-      classify: classify,
-      country: country,
-      year: year,
-      genre: genre,
-      sort: sort
-    });
+    // Build JSON body manually like Python to match exact format
+    const jsonBody = (
+      "{" +
+      `"page":${pg},"perPage":${perPage},"channelId":"${channelIdStr}",` +
+      `"classify":"${classify}","country":"${country}",` +
+      `"year":"${year}","genre":"${genre}","sort":"${sort}"` +
+      "}"
+    );
 
     const xClientToken = this.generateXClientToken();
     let response;
